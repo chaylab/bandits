@@ -10,6 +10,7 @@ class UCB:
         self.alpha = alpha
         self.T = 0
         self.reward_sum = 0
+        self.pevArm = n-1
         
     def observe(self, x):
         self.arms[self.pevArm][0] += x
@@ -30,7 +31,7 @@ class UCB:
 
 class CUCB:
     def __init__(self, c, n, alpha):
-        self.ucbs = [UBC(n, alpha) for i in range(c)]
+        self.ucbs = [UCB(n, alpha) for i in range(c)]
         self.C = c
         self.T = 0
         self.reward_sum = 0
@@ -49,15 +50,17 @@ class CUCB:
 
 class DUCB:
     def __init__(self, c, n ,alpha ,d):
-        self.ucbs = [UBC(n, alpha) for i in range(c*2-1)]
+        self.ucbs = [UCB(n, alpha) for i in range(2**int(math.ceil(math.log(10,2))+1))]
+        self.CT = 2**int(math.ceil(math.log(10,2)))
         self.C = c
         self.T = 0
         self.delta = d
         self.reward_sum = 0
 
-    def _get_path(n):
+    def _get_path(self, n):
         path = [0]
-        l = 0, h = self.C
+        l = 0
+        h = self.CT
         while l<=h:
             m = (l+h)/2
             if n<m:
@@ -79,7 +82,10 @@ class DUCB:
     def pick(self, context):
         path = self._get_path(context)
         context = 0
-        for i in path: if self.ucbs[i].T >= self.delta: context = i
+        # print(path)
+        for i in path: 
+            if self.ucbs[i].T >= self.delta: 
+                context = i
         self.pev_context = context
         self.T += 1
         return self.ucbs[context].pick()
