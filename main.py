@@ -22,11 +22,12 @@ def getMaxReward(X, T):
 
 def strg1(X, C, learner, N, T):
     for t in range(T):
-        c = t mod C
+        c = t % C
         it = learner.pick(c)
+        # print("context", c, "pick", it, "observe", X[c][t][it])
         learner.observe(X[c][t][it])
 
-    tmp = sum([getMaxReward(X[i], T) for i in range(C)])
+    # tmp = sum([getMaxReward(X[i], T) for i in range(C)])
     return learner.getSum()
 
 
@@ -34,7 +35,7 @@ if __name__=='__main__':
     context_n = 10
     arm_n = 2
     ucb_alpha = 3 #alpha > 2
-    T = 1000
+    T = 10000
     arms_mean = [
         [0.6, 0.3],
         [0.3, 0.6]
@@ -47,20 +48,14 @@ if __name__=='__main__':
         else:
             contexts.append(Context(arm_n,arms_mean[1]))
 
-    X = [contexts[i].sample(T) for i in context_n]
+    X = [contexts[i].sample(T) for i in range(context_n)]
     cucb = CUCB(context_n, arm_n, ucb_alpha)
-    ducb = DUCB(context_n, arm_n, ucb_alpha, 10)
-    # print(X)
-    # ucb = UCB(arm_n, ucb_alpha)
-    # sum_rwd = [0] * arm_n
-    # rwd = 0
-    # for t in range(T):
-    #     it = ucb.pick()
-    #     for i in range(arm_n):
-    #         sum_rwd[i] += X[t][i]
-    #     ucb.observe(X[t][it])
-    #     rwd += X[t][it]
-    # r = max(sum_rwd) - rwd
+    ducb = DUCB(context_n, arm_n, ucb_alpha, 1000)
+    
+    sc = strg1(X, context_n, cucb, arm_n, T)
+    sd = strg1(X, context_n, ducb, arm_n, T)
+    
+    print(sc, sd)
 
     # d = deltaDiff(arm_n, arms_mean[0])
     # theory = theoryRegret(d, T, ucb_alpha)
