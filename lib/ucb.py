@@ -10,8 +10,12 @@ class UCB:
         self.alpha = alpha
         self.T = 0
         self.reward_sum = 0
-        self.pevArm = n-1
-        
+    
+    def observeFix(self, it, x):
+        self.arms[it][0] += x
+        self.arms[it][1] += 1
+        self.reward_sum += x
+
     def observe(self, x):
         self.arms[self.pevArm][0] += x
         self.arms[self.pevArm][1] += 1
@@ -50,45 +54,44 @@ class CUCB:
 
 class DUCB:
     def __init__(self, c, n ,alpha ,d):
-        self.ucbs = [UCB(n, alpha) for i in range(2**int(math.ceil(math.log(10,2))+1))]
-        self.CT = 2**int(math.ceil(math.log(10,2)))
+        self.ucbs = [UCB(n, alpha) for i in range(2**int(math.ceil(math.log(c,2))+1))]
+        self.CT = 2**int(math.ceil(math.log(c,2)))
         self.C = c
         self.T = 0
         self.delta = d
         self.reward_sum = 0
 
+        self.path = [self._get_path(i) for i in range(c)]
+
     def _get_path(self, n):
-        path = [0]
-        l = 0
-        h = self.CT
-        while l<=h:
-            m = (l+h)/2
-            if n<m:
-                h = m-1
-                path.append(path[-1]*2+1)
-            elif n>m: 
-                l = m+1
-                path.append(path[-1]*2+2)
-            else:
-                break
+        tmp = [0]*int(math.ceil(math.log(self.C,2)))
+        for i,num in enumerate(tmp):
+            tmp[i] = n%2
+            n = int(n/2)
+        path = []
+        pev = 0
+        for i in tmp[::-1]:
+            path.append(pev*2+(1+i))
+            pev = path[-1]
         return path
 
     def observe(self, x):
-        path = self._get_path(self.pev_context)
+        path = self.path[self.pev_context]
         for i in path:
-            self.ucbs[i].observe(x)
+            self.ucbs[i].observeFix(self.pev_it, x)
         self.reward_sum += x
 
     def pick(self, context):
-        path = self._get_path(context)
-        context = 0
-        # print(path)
-        for i in path: 
-            if self.ucbs[i].T >= self.delta: 
-                context = i
+        path = self.path[context]
+        # print(context, path)
+        context = path[0]
+        for i,num in enumerate(path[1:]): 
+            if self.ucbs[num].T >= self.delta: 
+                context = num
         self.pev_context = context
+        self.pev_it = self.ucbs[context].pick()
         self.T += 1
-        return self.ucbs[context].pick()
+        return self.pev_it
 
     def getSum(self):
         return self.reward_sum
