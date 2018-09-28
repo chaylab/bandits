@@ -7,7 +7,7 @@ class Context:
         # 0 mean
         # 1 sd
 
-    def _bounder(self, x):
+    def _bound(self, x):
         # [0, 1]
         return max(min(x,1),0)
 
@@ -15,7 +15,7 @@ class Context:
         result = [[] for i in range(n)]
         for dist in self.dists:
             X = np.random.normal(dist[0], dist[1], n)
-            tmp = [self._bounder(x) for x in X]
+            tmp = [self._bound(x) for x in X]
             for i in range(n):
                 result[i].append(tmp[i])
         return result

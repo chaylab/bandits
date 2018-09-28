@@ -1,8 +1,8 @@
 from lib.context import Context
-from lib.ucb import UCB
+from lib.ucb import UCB, CUCB, DUCB
 import math
 
-def delta_diff(n, mean):
+def deltaDiff(n, mean):
     ret = []
     for i in range(n):
         for j in range(i+1,n):
@@ -10,8 +10,25 @@ def delta_diff(n, mean):
             if tmp > 0: ret.append(tmp)
     return ret
 
-def get_theory_regret(d, T, a):
+def theoryRegret(d, T, a):
     return sum([2*a/i for i in d])*math.log(T)+a/(a-2)*sum(d)
+
+def getMaxReward(X, T):
+    tmp = [0]*len(X[0])
+    for i in range(T):
+        for j in range(len(X[i])):
+            tmp[j] += X[i][j]
+    return sum(tmp)
+
+def strg1(X, C, learner, N, T):
+    for t in range(T):
+        c = t mod C
+        it = learner.pick(c)
+        learner.observe(X[c][t][it])
+
+    tmp = sum([getMaxReward(X[i], T) for i in range(C)])
+    return learner.getSum()
+
 
 if __name__=='__main__':
     context_n = 10
@@ -30,21 +47,23 @@ if __name__=='__main__':
         else:
             contexts.append(Context(arm_n,arms_mean[1]))
 
-    X = contexts[0].sample(T)
+    X = [contexts[i].sample(T) for i in context_n]
+    cucb = CUCB(context_n, arm_n, ucb_alpha)
+    ducb = DUCB(context_n, arm_n, ucb_alpha, 10)
     # print(X)
-    ucb = UCB(arm_n, ucb_alpha)
-    sum_rwd = [0] * arm_n
-    rwd = 0
-    for t in range(T):
-        it = ucb.pick()
-        for i in range(arm_n):
-            sum_rwd[i] += X[t][i]
-        ucb.observe(X[t][it])
-        rwd += X[t][it]
-    r = max(sum_rwd) - rwd
+    # ucb = UCB(arm_n, ucb_alpha)
+    # sum_rwd = [0] * arm_n
+    # rwd = 0
+    # for t in range(T):
+    #     it = ucb.pick()
+    #     for i in range(arm_n):
+    #         sum_rwd[i] += X[t][i]
+    #     ucb.observe(X[t][it])
+    #     rwd += X[t][it]
+    # r = max(sum_rwd) - rwd
 
-    d = delta_diff(arm_n, arms_mean[0])
-    theory = get_theory_regret(d, T, ucb_alpha)
+    # d = deltaDiff(arm_n, arms_mean[0])
+    # theory = theoryRegret(d, T, ucb_alpha)
 
-    print('reget: {}, max arm reward: {}, player reward: {}, theory reget: {}'.format(r, max(sum_rwd), rwd, theory))
+    # print('reget: {}, max arm reward: {}, player reward: {}, theory reget: {}'.format(r, max(sum_rwd), rwd, theory))
 
