@@ -85,7 +85,7 @@ class DUCB:
         path = self.path[context]
         # print(context, path)
         context = path[0]
-        for i,num in enumerate(path[1:]): 
+        for i,num in enumerate(path): 
             if self.ucbs[num].T >= self.delta: 
                 context = num
         self.pev_context = context
