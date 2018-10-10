@@ -8,13 +8,15 @@ class UCB:
         for i in range(n):
             self.arms.append([0,1])
         self.alpha = alpha
-        self.T = 0
+        self.T = 0 # pick times
+        self.tO = 0 # observe times
         self.reward_sum = 0
     
     def observeFix(self, it, x):
         self.arms[it][0] += x
         self.arms[it][1] += 1
         self.reward_sum += x
+        self.tO += 1
 
     def observe(self, x):
         self.arms[self.pevArm][0] += x
@@ -55,7 +57,8 @@ class CUCB:
 class DUCB:
     def __init__(self, c, n ,alpha ,d):
         self.ucbs = [UCB(n, alpha) for i in range(2**int(math.ceil(math.log(c,2))+1))]
-        self.CT = 2**int(math.ceil(math.log(c,2)))
+        self.CT = 2**int(math.ceil(math.log(c,2))+1)
+        # print(self.CT,2**int(math.ceil(math.log(c,2))+1))
         self.C = c
         self.T = 0
         self.delta = d
@@ -76,21 +79,26 @@ class DUCB:
         return path
 
     def observe(self, x):
-        path = self.path[self.pev_context]
+        path = self.path[self.raw_context]
         for i in path:
             self.ucbs[i].observeFix(self.pev_it, x)
         self.reward_sum += x
 
     def pick(self, context):
+        self.raw_context = context
         path = self.path[context]
-        # print(context, path)
         context = path[0]
-        for i,num in enumerate(path): 
-            if self.ucbs[num].T >= self.delta: 
+        for i,num in enumerate(path[::-1]):
+            if self.ucbs[num].tO >= self.delta: 
+                # print(num,self.ucbs[num].tO,self.delta)
                 context = num
+                break
+        
         self.pev_context = context
         self.pev_it = self.ucbs[context].pick()
         self.T += 1
+        # print(self.raw_context, path, '->', context,'=>', self.pev_it)        
+        # print('#', [self.ucbs[i].tO for i in path])
         return self.pev_it
 
     def getSum(self):
