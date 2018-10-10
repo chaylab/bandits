@@ -19,3 +19,6 @@ class Context:
             for i in range(n):
                 result[i].append(tmp[i])
         return result
+
+    def tSample(self, n):
+        return [[self.dists[0][0],self.dists[1][0]]]*n
