@@ -31,25 +31,23 @@ def testD(contexts, T):
 def testC(contexts, T):
     cucb = CUCB(len(contexts), 2, 3)
     return strg1(contexts, cucb, T)
-
-def avg(contexts, func, T, n):
-    mis = 0
-    C = len(contexts)
-    for i in range(n):
-        mis += T-func(contexts, T)
-    return mis/n
-
+    
 if __name__=='__main__':
     T = 3000
-    cs = range(10,1000,10)
+    cs = range(10,1000,50)
     with open('ducb{}.in'.format(T),'w') as f1:
         with open('cucb{}.in'.format(T),'w') as f2:
             print(T, len(cs), file=f1)
             print(T, len(cs), file=f2)
             for i in cs:
-                contexts = create_contexts(i)
-                s1 = avg(contexts, testD, T, 20)
-                s2 = avg(contexts, testC, T, 20)
-                print(i, s1, file=f1)
-                print(i, s2, file=f2)
-                # print(s1,s2)
+                s1,s2 = 0,0
+                n = 10
+                for j in range(n):
+                    contexts = create_contexts(i)
+                    s1 += testD(contexts, T)
+                    s2 += testC(contexts, T)
+                s1/=n
+                s2/=n
+                print(i, T-s1, file=f1)
+                print(i, T-s2, file=f2)
+                    # print(s1,s2)
