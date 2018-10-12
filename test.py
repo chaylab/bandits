@@ -24,7 +24,8 @@ def strg1(contexts, learner, T):
     return learner.getSum()
 
 def testD(contexts, T):
-    ducb = DUCB(len(contexts), 2, 3, 3)
+    C = len(contexts)
+    ducb = DUCB(C, 2, 3, int(T/(math.log(C,2)/2)))
     return strg1(contexts, ducb, T)
 
 def testC(contexts, T):
